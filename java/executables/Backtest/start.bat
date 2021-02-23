@@ -1,0 +1,1 @@
+java -Xmx8000M -Duser.timezone=GMT -jar "target\Backtest.jar"

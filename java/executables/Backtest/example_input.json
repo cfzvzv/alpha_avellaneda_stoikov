@@ -1,0 +1,39 @@
+{
+  "backtest": {
+    "startDate": "20201208 11:00:00",
+    "endDate": "20201208 12:00:00",
+    "instrument": "btcusdt_binance"
+  },
+  "algorithm": {
+    "algorithmName": "SMACross_test",
+    "parameters": {
+      "maxBatchSize": "50",
+      "trainingPredictIterationPeriod": "-1",
+      "trainingTargetIterationPeriod": "-1",
+      "epoch": "5.0",
+      "skewPricePctAction": "0.0,0.1",
+      "riskAversionAction": "0.9,0.5,0.2",
+      "windowsTickAction": "5,10",
+      "minPrivateState": "-0.01",
+      "maxPrivateState": "0.01",
+      "numberDecimalsPrivateState": "4.0",
+      "horizonTicksPrivateState": "3.0",
+      "horizonMinMsTick": "10.0",
+      "scoreEnum": "total_pnl",
+      "timeHorizonSeconds": "5.0",
+      "epsilon": "0.2",
+      "discountFactor": "0.95",
+      "learningRate": "0.25",
+      "risk_aversion": "0.6520471996947839",
+      "position_multiplier": "100.0",
+      "window_tick": "15.0",
+      "minutes_change_k": "10.0",
+      "quantity": "0.0001",
+      "k_default": "0.00769",
+      "spread_multiplier": "5.0",
+      "first_hour": "7.0",
+      "last_hour": "19.0",
+      "stateColumnsFilter": "ask_price_0,ask_price_3,ask_price_4,ask_price_7,ask_price_8,ask_qty_0,ask_qty_1,ask_qty_2,ask_qty_4,bid_price_0,bid_price_3,bid_price_4,bid_price_7,bid_price_8,bid_qty_0,bid_qty_1,bid_qty_4,bid_qty_9,close_0,high_0,low_0,microprice_0,spread_0,spread_3,spread_4,spread_7,spread_8"
+    }
+  }
+}

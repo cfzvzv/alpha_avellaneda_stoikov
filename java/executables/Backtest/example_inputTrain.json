@@ -1,0 +1,12 @@
+{
+  "memoryPath": "D:\\javif\\Coding\\cryptotradingdesk\\java\\output\\memoryReplay_AvellanedaDQN_test.csv",
+  "outputModelPath": "D:\\javif\\Coding\\cryptotradingdesk\\java\\output\\predict_model_AvellanedaDQN_test.model",
+  "actionColumns": 4,
+  "stateColumns": 44,
+  "nEpoch": 50,
+  "l2": 0.0001,
+  "l1": 0.0,
+  "learningRate": 0.25,
+  "momentumNesterov": 0.5,
+  "trainingStats": 1
+}

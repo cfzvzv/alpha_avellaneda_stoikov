@@ -1,0 +1,1 @@
+black %cd% -S --exclude venv

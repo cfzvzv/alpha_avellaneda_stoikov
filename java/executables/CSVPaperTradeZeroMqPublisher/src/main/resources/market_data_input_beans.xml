@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+
+
+    <bean id="instrument1" class="com.lambda.investing.model.asset.Instrument">
+        <property name="symbol" value="btcusd"></property>
+    </bean>
+
+    <bean id="CSVFileConfiguration"
+          class="com.lambda.investing.market_data_connector.csv_file_reader.CSVFileConfiguration">
+        <constructor-arg index="0" ref="instrument1"/>
+        <!--speed-->
+        <constructor-arg index="1" value="-1"/>
+        <!--initial sleep seconds-->
+        <constructor-arg index="2" value="20"/>
+        <!--start time yyyyMMdd -->
+        <constructor-arg index="3" value="20200815"/>
+        <!--end time-->
+        <constructor-arg index="4" value="20200815"/>
+    </bean>
+
+
+    <!--input to Ordinary publisher-->
+
+    <bean id="inProcessConnectorConfiguration"
+          class="com.lambda.investing.connector.ordinary.OrdinaryConnectorConfiguration">
+    </bean>
+
+
+    <bean id="ordinaryPublisher" class="com.lambda.investing.connector.ordinary.OrdinaryConnectorPublisherProvider">
+        <constructor-arg index="0" value="csv_publisher"/>
+
+        <!--number of threads publishing to Ordinary-->
+        <constructor-arg index="1" value="0"/>
+    </bean>
+
+
+    <bean id="marketDataConnectorPublisher"
+          class="com.lambda.investing.market_data_connector.csv_file_reader.CSVMarketDataConnectorPublisher"
+          init-method="init">
+        <constructor-arg index="0" ref="inProcessConnectorConfiguration"/><!--not needed here , not used-->
+        <constructor-arg index="1" ref="ordinaryPublisher"/>
+        <constructor-arg index="2" ref="CSVFileConfiguration"/>
+    </bean>
+
+
+    <bean id="ordinaryMarketDateProvider"
+          class="com.lambda.investing.market_data_connector.ordinary.OrdinaryMarketDataProvider" init-method="init">
+        <constructor-arg index="0" ref="ordinaryPublisher"/>
+        <constructor-arg index="1" ref="inProcessConnectorConfiguration">
+        </constructor-arg>
+    </bean>
+
+
+</beans>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+
+    <bean id="zeroMqconnectorConfiguration" class="com.lambda.investing.connector.zero_mq.ZeroMqConfiguration">
+        <property name="port" value="666"/>
+        <property name="host" value="localhost"/>
+    </bean>
+
+    <bean id="zeroMqconnectorPublisher" class="com.lambda.investing.connector.zero_mq.ZeroMqPublisher">
+        <constructor-arg index="0" value="csv_publisher"/>
+        <constructor-arg index="1" value="0"/>
+    </bean>
+
+
+    <bean id="instrument1" class="com.lambda.investing.model.asset.Instrument">
+        <property name="symbol" value="btcusd"></property>
+    </bean>
+
+    <bean id="CSVFileConfiguration" class="com.lambda.investing.market_data_connector.csv_file_reader.CSVFileConfiguration">
+        <constructor-arg index="0" ref="instrument1"/>
+        <!--speed-->
+        <constructor-arg index="1" value="-1"/>
+        <!--initial sleep seconds-->
+        <constructor-arg index="2" value="10"/>
+        <!--start time yyyyMMdd -->
+        <constructor-arg index="3" value="20200815"/>
+        <!--end time-->
+        <constructor-arg index="4" value="20200815"/>
+    </bean>
+
+
+    <bean id="csvToZeroMqMarketDataConnectorPublisher"
+          class="com.lambda.investing.market_data_connector.csv_file_reader.CSVMarketDataConnectorPublisher"
+          init-method="init">
+        <constructor-arg index="0" ref="zeroMqconnectorConfiguration"/>
+        <constructor-arg index="1" ref="zeroMqconnectorPublisher"/>
+        <constructor-arg index="2" ref="CSVFileConfiguration"/>
+    </bean>
+
+
+</beans>

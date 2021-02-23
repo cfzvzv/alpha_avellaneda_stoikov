@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+
+    <bean id="instrument" class="com.lambda.investing.model.asset.Instrument" init-method="addMap">
+        <property name="symbol" value="btcusdt"></property>
+        <property name="market" value="binance"></property>
+        <property name="currency" value="USD"></property>
+        <!--<property name="priceTick" value="0.0001"></property>-->
+        <!--<property name="quantityTick" value="0.0001"></property>-->
+    </bean>
+
+    <bean id="constantSpread" class="com.lambda.investing.algorithmic_trading.constant_spread.ConstantSpreadAlgorithm">
+        <constructor-arg index="0" value="constantSpread_1"/>
+        <constructor-arg index="1">
+            <map>
+                <entry key="spread_multiplier" value="1500"/>
+                <entry key="quantity" value="0.001"/>
+            </map>
+        </constructor-arg>
+        <property name="instrument" ref="instrument"></property>
+    </bean>
+
+
+    <bean id="backtestConfiguration"
+          class="com.lambda.investing.backtest_engine.BacktestConfiguration">
+        <property name="instrument" ref="instrument"></property>
+        <property name="algorithm" ref="constantSpread"></property>
+        <property name="startTime" value="20201204"></property>
+        <property name="endTime" value="20201204"></property>
+        <property name="backtestSource" value="parquet"></property>
+        <property name="backtestExternalConnection" value="ordinary"></property>
+        <property name="speed" value="-1"></property>
+    </bean>
+
+
+    <bean id="csvOrdinaryBacktest"
+          class="com.lambda.investing.backtest_engine.ordinary.OrdinaryBacktest" init-method="start"
+          depends-on="backtestConfiguration">
+        <constructor-arg index="0" ref="backtestConfiguration"/>
+        <property name="singleThread" value="true"></property>
+    </bean>
+
+    <!--<bean id="csvZeroBacktest"-->
+    <!--class="com.lambda.investing.backtest_engine.zero_mq.CSVZeroMqBacktest" init-method="start"-->
+    <!--depends-on="backtestConfiguration">-->
+    <!--<constructor-arg index="0" ref="backtestConfiguration"/>-->
+    <!--<constructor-arg index="1" value="666"/>-->
+    <!--<constructor-arg index="2" value="667"/>-->
+    <!--<property name="host" value="localhost"></property>-->
+    <!--&lt;!&ndash;<property name="singleThread" value="true"></property>&ndash;&gt;-->
+    <!--</bean>-->
+
+    <!--GUI -->
+    <!--<bean id="GUI" class="com.lambda.investing.algorithmic_trading.gui.AlgorithmicTradingGUI" init-method="start">-->
+    <!--<constructor-arg>-->
+    <!--<list>-->
+    <!--<ref bean="constantSpread"/>-->
+    <!--</list>-->
+    <!--</constructor-arg>-->
+    <!--</bean>-->
+
+
+</beans>

@@ -1,0 +1,5 @@
+onnxruntime==1.6.0
+onnx==1.8.0
+onnxmltools==1.7.0
+tf2onnx==1.7.2
+h2o==3.32.0.2

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+
+    <bean id="instrument" class="com.lambda.investing.model.asset.Instrument" init-method="addMap">
+        <property name="symbol" value="btcusdt"></property>
+        <property name="market" value="binance"></property>
+        <property name="currency" value="USD"></property>
+        <!--<property name="priceTick" value="0.0001"></property>-->
+        <!--<property name="quantityTick" value="0.0001"></property>-->
+    </bean>
+
+
+    <bean id="avellanedaDQN"
+          class="com.lambda.investing.algorithmic_trading.avellaneda_stoikov_dqn.AvellanedaStoikovDQNMarket">
+        <constructor-arg index="0" value="AvellanedaDQN_test"/>
+        <constructor-arg index="1">
+            <map>
+                <!--Avellaneda default parameters-->
+                <entry key="risk_aversion" value="0.9"/>
+                <entry key="position_multiplier" value="100"/>
+                <entry key="window_tick" value="10"/>
+                <entry key="minutes_change_k" value="10"/>
+                <entry key="quantity" value="0.0001"/>
+                <entry key="k_default" value="0.00769"/>
+                <entry key="spread_multiplier" value="5."/>
+                <!--Always working-->
+                <entry key="first_hour" value="7"/>
+                <entry key="last_hour" value="19"/>
+
+                <!--QLearn-->
+                <entry key="riskAversionAction" value="0.9,0.5,0.1"/>
+                <entry key="skewPricePctAction" value="0."/>
+                <entry key="windowsTickAction" value="5,10"/>
+                <entry key="minPrivateState" value="-0.01"/>
+                <entry key="maxPrivateState" value="0.01"/>
+                <entry key="horizonTicksPrivateState" value="3"/>
+                <entry key="horizonMinMsTick" value="10"/>
+                <entry key="numberDecimalsPrivateState" value="4"/>
+                <entry key="scoreEnum" value="total_pnl"/>
+                <entry key="timeHorizonSeconds" value="5"/>
+                <entry key="epsilon" value="0.2"/>
+                <!--DQN parameters-->
+                <entry key="maxBatchSize" value="1000"/>
+                <entry key="trainingPredictIterationPeriod" value="-1"/>
+                <entry key="trainingTargetIterationPeriod" value="-1"/>
+
+                <!--Market parameters-->
+                <entry key="horizonTicksMarketState" value="3"/>
+                <entry key="horizonCandlesState" value="1"/>
+
+
+            </map>
+        </constructor-arg>
+        <property name="instrument" ref="instrument"></property>
+    </bean>
+
+
+    <bean id="backtestConfiguration"
+          class="com.lambda.investing.backtest_engine.BacktestConfiguration">
+        <property name="instrument" ref="instrument"></property>
+        <property name="algorithm" ref="avellanedaDQN"></property>
+        <property name="startTime" value="20201208"></property>
+        <property name="endTime" value="20201208"></property>
+        <!--<property name="startTime" value="20201124"></property>-->
+        <!--<property name="endTime" value="20201124"></property>-->
+        <property name="backtestSource" value="parquet"></property>
+        <property name="backtestExternalConnection" value="ordinary"></property>
+        <property name="speed" value="-1"></property>
+    </bean>
+
+
+    <bean id="ordinaryBacktest"
+          class="com.lambda.investing.backtest_engine.ordinary.OrdinaryBacktest" init-method="start"
+          depends-on="backtestConfiguration">
+        <constructor-arg index="0" ref="backtestConfiguration"/>
+        <property name="singleThread" value="true"/>
+    </bean>
+
+    <!--<bean id="csvZeroBacktest"-->
+    <!--class="com.lambda.investing.backtest_engine.zero_mq.CSVZeroMqBacktest" init-method="start"-->
+    <!--depends-on="backtestConfiguration">-->
+    <!--<constructor-arg index="0" ref="backtestConfiguration"/>-->
+    <!--<constructor-arg index="1" value="666"/>-->
+    <!--<constructor-arg index="2" value="777"/>-->
+    <!--<property name="host" value="localhost"></property>-->
+    <!--<property name="singleThread" value="true"></property>-->
+    <!--</bean>-->
+
+
+    <!--GUI -->
+    <!--<bean id="GUI" class="com.lambda.investing.algorithmic_trading.gui.AlgorithmicTradingGUI" init-method="start">-->
+    <!--<constructor-arg>-->
+    <!--<list>-->
+    <!--<ref bean="avellanedaStoikov"/>-->
+    <!--</list>-->
+    <!--</constructor-arg>-->
+    <!--</bean>-->
+
+</beans>
