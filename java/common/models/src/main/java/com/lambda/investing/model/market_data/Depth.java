@@ -15,7 +15,7 @@ import static com.lambda.investing.model.Util.getDateUTC;
 
 @Getter @Setter
 
-public class Depth extends CSVable {
+public class Depth extends CSVable implements Cloneable {
 
 	public static String ALGORITHM_INFO_MM = "MarketMaker_CSV";
 
@@ -30,7 +30,16 @@ public class Depth extends CSVable {
 
 	private String[] bidsAlgorithmInfo, asksAlgorithmInfo;//just for backtesting
 
-	private int levels;
+	private int levels, askLevels, bidLevels;
+
+	public void setLevelsFromData() {
+		int bidLevels = Math.min(bids.length, Depth.MAX_DEPTH);
+		int askLevels = Math.min(asks.length, Depth.MAX_DEPTH);
+		this.bidLevels = bidLevels;
+		this.askLevels = askLevels;
+		int levels = Math.max(this.bidLevels, this.askLevels);
+		this.levels = levels;
+	}
 
 	public double getMidPrice() {
 		return (getBestBid() + getBestAsk()) / 2;
@@ -42,6 +51,17 @@ public class Depth extends CSVable {
 
 	public boolean isDepthFilled() {
 		return bids.length > 0 && asks.length > 0;
+	}
+
+	public boolean isDepthValid() {
+		boolean isFilledAtLeastOneLevel = bids.length > 0 || asks.length > 0;
+		boolean isRightPrice = true;
+		try {
+			isRightPrice = getBestBid() < getBestAsk();
+		} catch (Exception e) {
+			isRightPrice = true;
+		}
+		return isFilledAtLeastOneLevel && isRightPrice;
 	}
 
 	public double getBestBid() {
@@ -117,15 +137,21 @@ public class Depth extends CSVable {
 		return output.toString();
 	}
 
+	public static StringBuilder headerCSV() {
+		//			,ask0,ask1,ask2,ask3,ask4,ask_quantity0,ask_quantity1,ask_quantity2,ask_quantity3,ask_quantity4,bid0,bid1,bid2,bid3,bid4,bid_quantity0,bid_quantity1,bid_quantity2,bid_quantity3,bid_quantity4
+
+		StringBuilder stringBuffer = new StringBuilder();
+		return stringBuffer
+				.append(",timestamp,ask0,ask1,ask2,ask3,ask4,ask_quantity0,ask_quantity1,ask_quantity2,ask_quantity3,ask_quantity4,bid0,bid1,bid2,bid3,bid4,bid_quantity0,bid_quantity1,bid_quantity2,bid_quantity3,bid_quantity4");
+
+	}
 	public String toCSV(boolean withHeader) {
 		if (!this.isDepthFilled()) {
 			return null;
 		}
 		StringBuilder stringBuffer = new StringBuilder();
 		if (withHeader) {
-			//			,ask0,ask1,ask2,ask3,ask4,ask_quantity0,ask_quantity1,ask_quantity2,ask_quantity3,ask_quantity4,bid0,bid1,bid2,bid3,bid4,bid_quantity0,bid_quantity1,bid_quantity2,bid_quantity3,bid_quantity4
-			stringBuffer
-					.append(",timestamp,ask0,ask1,ask2,ask3,ask4,ask_quantity0,ask_quantity1,ask_quantity2,ask_quantity3,ask_quantity4,bid0,bid1,bid2,bid3,bid4,bid_quantity0,bid_quantity1,bid_quantity2,bid_quantity3,bid_quantity4");
+			stringBuffer.append(headerCSV());
 			stringBuffer.append(System.lineSeparator());
 		}
 
@@ -191,7 +217,11 @@ public class Depth extends CSVable {
 		UTC_CALENDAR.setTimeInMillis(depthParquet.getTimestamp());
 		this.instrument = instrument.getPrimaryKey();
 		this.timestamp = depthParquet.getTimestamp();
-		this.levels = depthParquet.getLevels();
+
+		//from csv
+		if (levels == 0) {
+			levels = MAX_DEPTH_CSV;
+		}
 		this.bidsQuantities = new Double[levels];
 		this.asksQuantities = new Double[levels];
 		this.bids = new Double[levels];
@@ -269,6 +299,8 @@ public class Depth extends CSVable {
 		if (depthParquet.getAskQuantity4() != null) {
 			this.asksQuantities[4] = depthParquet.getAskQuantity4();
 		}
+
+		this.setLevelsFromData();
 		//		if (depthParquet.getAskQuantity5() != null) {
 		//			this.asksQuantities[5] = depthParquet.getAskQuantity5();
 		//		}
@@ -301,6 +333,10 @@ public class Depth extends CSVable {
 		}
 
 		return (bidVolTotal - askVolTotal) / (bidVolTotal + askVolTotal);
+	}
+
+	@Override public Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 }
 

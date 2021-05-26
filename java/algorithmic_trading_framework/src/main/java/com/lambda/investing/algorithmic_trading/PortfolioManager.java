@@ -25,21 +25,24 @@ import tech.tablesaw.plotly.api.TimeSeriesPlot;
 import tech.tablesaw.plotly.components.Figure;
 import tech.tablesaw.selection.Selection;
 
-class PortfolioManager {
+public class PortfolioManager {
 
 	private Logger logger = LogManager.getLogger(PortfolioManager.class);
 	private Algorithm algorithm;
-	private Map<String, List<ExecutionReport>> instrumentToExecutionReportsFilled;
-	private Map<String, PnlSnapshot> instrumentPnlSnapshotMap;
+	//	private Map<String, List<ExecutionReport>> instrumentToExecutionReportsFilled;
+	protected Map<String, PnlSnapshot> instrumentPnlSnapshotMap;
 	private Map<String, Map<String, Double>> customColumns;
 	private Set<String> customColumnsKeys;
+	private boolean isBacktest;
+	private boolean isPaper;
+
 
 	public long numberOfTrades = 0;
 
 	public PortfolioManager(Algorithm algorithm) {
 		this.algorithm = algorithm;
+		this.isBacktest = this.algorithm.isBacktest;
 		reset();
-
 	}
 
 	public PnlSnapshot getLastPnlSnapshot(String instrumentPk) {
@@ -49,7 +52,7 @@ class PortfolioManager {
 
 
 	public void reset() {
-		instrumentToExecutionReportsFilled = new ConcurrentHashMap<>();
+		//		instrumentToExecutionReportsFilled = new ConcurrentHashMap<>();
 		instrumentPnlSnapshotMap = new ConcurrentHashMap<>();
 		customColumns = new ConcurrentHashMap<>();
 		customColumnsKeys = new HashSet<>();
@@ -57,6 +60,8 @@ class PortfolioManager {
 
 	public void updateDepth(Depth depth) {
 		PnlSnapshot pnlSnapshot = instrumentPnlSnapshotMap.getOrDefault(depth.getInstrument(), new PnlSnapshot());
+		pnlSnapshot.setBacktest(isBacktest);
+		pnlSnapshot.setPaper(isPaper);
 		pnlSnapshot.updateDepth(depth);
 		instrumentPnlSnapshotMap.put(depth.getInstrument(), pnlSnapshot);
 
@@ -82,13 +87,15 @@ class PortfolioManager {
 
 	}
 	public PnlSnapshot addTrade(ExecutionReport executionReport) {
-		List<ExecutionReport> executionReportList = instrumentToExecutionReportsFilled
-				.getOrDefault(executionReport.getInstrument(), new ArrayList<>());
-		executionReportList.add(executionReport);
-		instrumentToExecutionReportsFilled.put(executionReport.getInstrument(), executionReportList);
+		//		List<ExecutionReport> executionReportList = instrumentToExecutionReportsFilled
+		//				.getOrDefault(executionReport.getInstrument(), new ArrayList<>());
+		//		executionReportList.add(executionReport);
+		//		instrumentToExecutionReportsFilled.put(executionReport.getInstrument(), executionReportList);
 
 		PnlSnapshot pnlSnapshot = instrumentPnlSnapshotMap
 				.getOrDefault(executionReport.getInstrument(), new PnlSnapshot());
+		pnlSnapshot.setBacktest(isBacktest);
+		pnlSnapshot.setPaper(isPaper);
 		pnlSnapshot.updateExecutionReport(executionReport);
 
 		updateCustomHistoricals(executionReport.getInstrument(), executionReport.getTimestampCreation(), pnlSnapshot);
@@ -96,20 +103,27 @@ class PortfolioManager {
 
 		instrumentPnlSnapshotMap.put(executionReport.getInstrument(), pnlSnapshot);
 		numberOfTrades++;
+
 		return pnlSnapshot;
 	}
 
-
-	public void summary(Instrument instrument) {
+	public String summary(Instrument instrument) {
 		PnlSnapshot pnlSnapshot = instrumentPnlSnapshotMap.get(instrument.getPrimaryKey());
 		if (pnlSnapshot == null) {
 			logger.info("No pnl in {}", instrument.getPrimaryKey());
-			return;
+			return "";
 		}
+		String output = String
+				.format("\n\ttrades:%d  position:%.3f totalPnl:%.3f\n\trealizedPnl:%.3f\n\tunrealizedPnl:%.3f",
+						pnlSnapshot.numberOfTrades.get(), pnlSnapshot.netPosition, pnlSnapshot.totalPnl,
+						pnlSnapshot.realizedPnl, pnlSnapshot.unrealizedPnl);
+
 
 		logger.info("\n\ttrades:{}  position:{} totalPnl:{}\n\trealizedPnl:{}\n\tunrealizedPnl:{}",
 				pnlSnapshot.numberOfTrades, pnlSnapshot.netPosition,
 				pnlSnapshot.totalPnl, pnlSnapshot.realizedPnl, pnlSnapshot.unrealizedPnl);
+
+		return output;
 
 	}
 
@@ -257,13 +271,23 @@ class PortfolioManager {
 				}
 			}
 
-
 			// filtered!
 			output1 = output1.sortAscendingOn(dateTimeColumn.name());
 			IntColumn numberTradesSorted = output1.intColumn("numberTrades");
-			output1 = output1.where(numberTradesSorted.difference().isEqualTo(1.0));
+			Table output2 = output1.where(numberTradesSorted.difference().isNotEqualTo(0.0));
+			//			output2= firstRow.append(output2);
+			//			double lastUnrealizedPnl = historicalUnrealizedPnl.get(historicalUnrealizedPnl.size() - 1);
+			//			double lastRealizedPnl = historicalRealizedPnl.get(historicalRealizedPnl.size() - 1);
+			//			if (lastUnrealizedPnl != 0.0) {
+			//				Row lastRow = output2.row(output2.rowCount() - 1);
+			//				lastRow.setDouble("historicalUnrealizedPnl", lastUnrealizedPnl);
+			//				lastRow.setDouble("historicalRealizedPnl", lastRealizedPnl);
+			//				double lastTotalPnl = lastRealizedPnl + lastUnrealizedPnl;
+			//				lastRow.setDouble("historicalTotalPnl", lastTotalPnl);
+			//			}
+			output1 = output2;
+			output1 = output1.sortAscendingOn(dateTimeColumn.name());
 			//filtere the trades
-
 			if (basePath != null) {
 				String filename = basePath + "_" + instrumentPk + ".csv";
 				try {
