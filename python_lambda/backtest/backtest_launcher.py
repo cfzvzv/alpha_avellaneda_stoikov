@@ -142,6 +142,10 @@ class BacktestLauncherController:
                 continue
             else:
                 df = pd.read_csv(path)
+				
+            if df['date'].iloc[0].startswith("1970"):
+                df=df.iloc[1:]
+				
             output[backtest_launcher.id] = df
             print('%s with %d trades' % (algo_name, len(df)))
             if REMOVE_FINAL_CSV:
