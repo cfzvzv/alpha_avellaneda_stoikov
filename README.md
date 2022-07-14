@@ -1,4 +1,4 @@
-Thanks to all open source libraries used here, directly 
+Thanks to all open source libraries used here, directly   
 
 
 # Market Making fw
